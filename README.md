@@ -1,2 +1,1 @@
-# conan-mavskd
-Conan recipe for MAVSKD
+[Conan.io](https://conan.io) recipe for [MAVSDK](https://mavsdk.mavlink.io/main/en/).
