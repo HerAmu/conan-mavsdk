@@ -92,10 +92,12 @@ jsoncpp::jsoncpp
     def package(self):
         cmake = self.configure_cmake()
         cmake.install()
+        if self.options.shared:
+            self.copy("mavsdk*", dst = "bin", src = self.build_folder + "/src/bin/", keep_path = False, symlinks = True)
 
     def package_info(self):
         self.cpp_info.name = 'MAVSDK'
-        libs = [
+        self.cpp_info.libs = [
                 "mavsdk",
                 "mavsdk_action",
                 "mavsdk_action_server",
@@ -122,12 +124,6 @@ jsoncpp::jsoncpp
                 "mavsdk_transponder",
                 "mavsdk_tune"
             ]
-
-        if self.settings.compiler == "Visual Studio" \
-           and self.settings.build_type == "Debug":
-            self.cpp_info.libs = [lib + "d" for lib in libs]
-        else:
-            self.cpp_info.libs = libs
 
         self.cpp_info.includedirs.extend([
             "include/mavsdk",
