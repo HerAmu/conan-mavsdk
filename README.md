@@ -1,6 +1,6 @@
-[![GCC Conan](https://github.com/sintef-ocean/main/workflows/GCC%20Conan/badge.svg)](https://github.com/sintef-ocean/main/actions?query=workflow%3A"GCC+Conan")
-[![Clang Conan](https://github.com/sintef-ocean/main/workflows/Clang%20Conan/badge.svg)](https://github.com/sintef-ocean/main/actions?query=workflow%3A"Clang+Conan")
-[![MSVC Conan](https://github.com/sintef-ocean/main/workflows/MSVC%20Conan/badge.svg)](https://github.com/sintef-ocean/main/actions?query=workflow%3A"MSVC+Conan")
+[![GCC Conan](https://github.com/sintef-ocean/conan-mavsdk/workflows/GCC%20Conan/badge.svg)](https://github.com/sintef-ocean/conan-mavsdk/actions?query=workflow%3A"GCC+Conan")
+[![Clang Conan](https://github.com/sintef-ocean/conan-mavsdk/workflows/Clang%20Conan/badge.svg)](https://github.com/sintef-ocean/conan-mavsdk/actions?query=workflow%3A"Clang+Conan")
+[![MSVC Conan](https://github.com/sintef-ocean/conan-mavsdk/workflows/MSVC%20Conan/badge.svg)](https://github.com/sintef-ocean/conan-mavsdk/actions?query=workflow%3A"MSVC+Conan")
 
 
 [Conan.io](https://conan.io) recipe for [mavsdk](https://mavsdk.mavlink.io/main/en/index.html).
