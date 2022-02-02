@@ -52,8 +52,8 @@ class MAVSDKConan(ConanFile):
 
     def source(self):
         tools.replace_in_file("{}/src/CMakeLists.txt".format(self.source_folder),
-                              "project(mavsdk)",
-                              '''project(mavsdk)
+                            "project(mavsdk)",
+                            '''project(mavsdk)
 # BEGIN CONAN PATCH
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
@@ -61,27 +61,27 @@ link_libraries(${CONAN_LIBS})
 # END CONAN PATCH''')
 
         tools.replace_in_file("{}/src/core/connection.h".format(self.source_folder),
-                              "#include <unordered_set>",
-                              '''#include <unordered_set>
+                             "#include <unordered_set>",
+                            '''#include <unordered_set>
 // BEGIN CONAN PATCH
 #include <atomic>
 // END CONAN PATCH''')
-
-        tools.replace_in_file("{}/src/cmake/unit_tests.cmake".format(self.source_folder),
-                            "JsonCpp::jsoncpp",
-                            '''# BEGIN CONAN PATCH
+        if self.settings.os == "Windows":
+            tools.replace_in_file("{}/src/cmake/unit_tests.cmake".format(self.source_folder),
+                                "JsonCpp::jsoncpp",
+                                '''# BEGIN CONAN PATCH
 jsoncpp::jsoncpp
 # END CONAN PATCH''')
 
-        tools.replace_in_file("{}/src/plugins/mission_raw/CMakeLists.txt".format(self.source_folder),
-                            "JsonCpp::jsoncpp",
-                            '''# BEGIN CONAN PATCH
+            tools.replace_in_file("{}/src/plugins/mission_raw/CMakeLists.txt".format(self.source_folder),
+                                "JsonCpp::jsoncpp",
+                                '''# BEGIN CONAN PATCH
 jsoncpp::jsoncpp
 # END CONAN PATCH''')
 
-        tools.replace_in_file("{}/src/plugins/mission/CMakeLists.txt".format(self.source_folder),
-                            "JsonCpp::jsoncpp",
-                            '''# BEGIN CONAN PATCH
+            tools.replace_in_file("{}/src/plugins/mission/CMakeLists.txt".format(self.source_folder),
+                                "JsonCpp::jsoncpp",
+                                '''# BEGIN CONAN PATCH
 jsoncpp::jsoncpp
 # END CONAN PATCH''')
 
@@ -100,7 +100,6 @@ jsoncpp::jsoncpp
         self.cpp_info.libs = [
                 "mavsdk",
                 "mavsdk_action",
-                "mavsdk_action_server",
                 "mavsdk_calibration", 
                 "mavsdk_camera",
                 "mavsdk_failure",
@@ -112,14 +111,12 @@ jsoncpp::jsoncpp
                 "mavsdk_log_files",
                 "mavsdk_manual_control",
                 "mavsdk_mission",
-                "mavsdk_mission_raw_server", 
                 "mavsdk_mocap",
                 "mavsdk_offboard",
                 "mavsdk_param",
                 "mavsdk_server_utility",
                 "mavsdk_shell",
                 "mavsdk_telemetry",
-                "mavsdk_telemetry_server",
                 "mavsdk_tracking_server",
                 "mavsdk_transponder",
                 "mavsdk_tune"
@@ -128,7 +125,6 @@ jsoncpp::jsoncpp
         self.cpp_info.includedirs.extend([
             "include/mavsdk",
             "include/mavsdk/plugins/action",
-            "include/mavsdk/plugins/action_server",
             "include/mavsdk/plugins/calibration",
             "include/mavsdk/plugins/camera",
             "include/mavsdk/plugins/failure",
@@ -142,7 +138,6 @@ jsoncpp::jsoncpp
             "include/mavsdk/plugins/mavlink_passthrough",
             "include/mavsdk/plugins/mission",
             "include/mavsdk/plugins/mission_raw",
-            "include/mavsdk/plugins/mission_raw_server",
             "include/mavsdk/plugins/mocap",
             "include/mavsdk/plugins/offboard",
             "include/mavsdk/plugins/param",

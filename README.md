@@ -40,10 +40,10 @@ The package is usually consumed using the `conan install` command or a *conanfil
    project(TheProject CXX)
 
    include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
-   find_package(mavsdk MODULE REQUIRED)
+   find_package(MAVSDK MODULE REQUIRED)
 
    add_executable(the_executor code.cpp)
-   target_link_libraries(the_executor mavsdk::mavsdk)
+   target_link_libraries(the_executor MAVSDK::MAVSDK)
    ```
    Then, do
    ```bash
@@ -57,7 +57,6 @@ The package is usually consumed using the `conan install` command or a *conanfil
 
 Option | Default | Domain
 ---|---|---
+shared | False | [True, False]
 
 ## Known recipe issues
-
-(Add known issues/shortcomings here)
