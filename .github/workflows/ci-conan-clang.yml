@@ -15,6 +15,9 @@ jobs:
   conan-with-clang:
     name: Conan
     runs-on: ${{ matrix.os }}
+    env:
+      CONAN_USER_HOME_SHORT: C:\c
+      CONAN_USE_ALWAYS_SHORT_PATHS: 1
     strategy:
       fail-fast: false
       matrix:
