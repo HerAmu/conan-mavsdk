@@ -5,7 +5,7 @@ from conans.model.version import Version
 class MAVSDKConan(ConanFile):
     name = "mavsdk"
     version = "0.39.0"
-    license = "MIT"
+    license = "BSD-3-Clause"
     author = "SINTEF Ocean"
     homepage = "https://mavsdk.mavlink.io/main/en/"
     url = "https://github.com/mavlink/MAVSDK.git"
