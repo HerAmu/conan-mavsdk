@@ -3,7 +3,7 @@
 [![MSVC Conan](https://github.com/sintef-ocean/conan-mavsdk/workflows/MSVC%20Conan/badge.svg)](https://github.com/sintef-ocean/conan-mavsdk/actions?query=workflow%3A"MSVC+Conan")
 
 
-[Conan.io](https://conan.io) recipe for [mavsdk](https://mavsdk.mavlink.io/main/en/index.html).
+[Conan.io](https://conan.io) recipe for [MAVSDK](https://mavsdk.mavlink.io/main/en/index.html).
 
 The package is usually consumed using the `conan install` command or a *conanfile.txt*.
 
@@ -60,3 +60,4 @@ Option | Default | Domain
 shared | False | [True, False]
 
 ## Known recipe issues
+The option to build with the MAVSDK server is not included as of yet.
