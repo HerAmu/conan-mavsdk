@@ -15,7 +15,8 @@ class MAVSDKConan(ConanFile):
     requires = [
         "jsoncpp/1.9.5",
         "tinyxml2/9.0.0",
-        "libcurl/7.80.0"
+        "libcurl/7.83.0",
+        "openssl/1.1.1n"
         ]
     
     options = {
@@ -34,10 +35,6 @@ class MAVSDKConan(ConanFile):
         "revision": "v{}".format(version),
         "submodule": "recursive"
         }
-
-    def requirements(self):
-        if self.settings.os != "iOS":
-            self.requires("zlib/1.2.11")
 
     def configure_cmake(self):
         cmake = CMake(self)
