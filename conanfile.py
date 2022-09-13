@@ -4,7 +4,7 @@ from conans.model.version import Version
 
 class MAVSDKConan(ConanFile):
     name = "mavsdk"
-    version = "0.39.0"
+    version = "1.4.3"
     license = "BSD-3-Clause"
     author = "SINTEF Ocean"
     homepage = "https://mavsdk.mavlink.io/main/en/"
@@ -15,8 +15,7 @@ class MAVSDKConan(ConanFile):
     requires = [
         "jsoncpp/1.9.5",
         "tinyxml2/9.0.0",
-        "libcurl/7.83.0",
-        "openssl/1.1.1n"
+        "libcurl/7.83.0"
         ]
     
     options = {
@@ -57,29 +56,29 @@ conan_basic_setup()
 link_libraries(${CONAN_LIBS})
 # END CONAN PATCH''')
 
-        tools.replace_in_file("{}/src/core/connection.h".format(self.source_folder),
-                             "#include <unordered_set>",
-                            '''#include <unordered_set>
-// BEGIN CONAN PATCH
+#        tools.replace_in_file("{}/src/mavsdk/core/connection.h".format(self.source_folder),
+ #                            "#include <unordered_set>",
+#                            '''#include <unordered_set>
+#// BEGIN CONAN PATCH
 #include <atomic>
-// END CONAN PATCH''')
-        if self.settings.os == "Windows":
-            tools.replace_in_file("{}/src/cmake/unit_tests.cmake".format(self.source_folder),
-                                "JsonCpp::jsoncpp",
-                                '''# BEGIN CONAN PATCH
-jsoncpp::jsoncpp
+#// END CONAN PATCH''')
+#        if self.settings.os == "Windows":
+#            tools.replace_in_file("{}/src/cmake/unit_tests.cmake".format(self.source_folder),
+#                                "JsonCpp::jsoncpp",
+#                                '''# BEGIN CONAN PATCH
+#jsoncpp::jsoncpp
+## END CONAN PATCH''')#
+#
+#            tools.replace_in_file("{}/src/mavsdk/plugins/mission_raw/CMakeLists.txt".format(self.source_folder),
+#                                "JsonCpp::jsoncpp",
+#                                '''# BEGIN CONAN PATCH
+#jsoncpp::jsoncpp
 # END CONAN PATCH''')
-
-            tools.replace_in_file("{}/src/plugins/mission_raw/CMakeLists.txt".format(self.source_folder),
-                                "JsonCpp::jsoncpp",
-                                '''# BEGIN CONAN PATCH
-jsoncpp::jsoncpp
-# END CONAN PATCH''')
-
-            tools.replace_in_file("{}/src/plugins/mission/CMakeLists.txt".format(self.source_folder),
-                                "JsonCpp::jsoncpp",
-                                '''# BEGIN CONAN PATCH
-jsoncpp::jsoncpp
+#
+#            tools.replace_in_file("{}/src/mavsdk/plugins/mission/CMakeLists.txt".format(self.source_folder),
+#                                "JsonCpp::jsoncpp",
+#                                '''# BEGIN CONAN PATCH
+#jsoncpp::jsoncpp
 # END CONAN PATCH''')
 
     def build(self):
