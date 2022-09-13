@@ -15,7 +15,8 @@ class MAVSDKConan(ConanFile):
     requires = [
         "jsoncpp/1.9.5",
         "tinyxml2/9.0.0",
-        "libcurl/7.83.0"
+        "libcurl/7.83.0",
+        "openssl/1.1.1n"
         ]
     
     options = {
