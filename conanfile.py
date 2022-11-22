@@ -13,9 +13,9 @@ class MAVSDKConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     generators = "cmake", "cmake_find_package"
     requires = [
-        "jsoncpp/1.9.5",
-        "tinyxml2/9.0.0",
-        "libcurl/7.83.0",
+        "jsoncpp/[>=1.9.5]",
+        "tinyxml2/[>=9.0.0]",
+        "libcurl/[>=7.86.0]",
         "openssl/1.1.1n"
         ]
     
