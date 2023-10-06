@@ -1,103 +1,144 @@
-from conans import ConanFile, CMake, tools
-from conans.model.version import Version
+from os.path import join
+from conan import ConanFile
+from conan.tools.files import get, copy
+from conan.tools.files import apply_conandata_patches, export_conandata_patches, replace_in_file, rmdir
+from conan.tools.cmake import CMake, CMakeToolchain, CMakeDeps, cmake_layout
+from conan.tools.microsoft.visual import is_msvc
+from conan.tools.scm import Git
+
+required_conan_version = ">=1.53.0"
 
 
 class MAVSDKConan(ConanFile):
     name = "mavsdk"
-    version = "0.39.0"
     license = "BSD-3-Clause"
     author = "SINTEF Ocean"
     homepage = "https://mavsdk.mavlink.io/main/en/"
     url = "https://github.com/mavlink/MAVSDK.git"
     description = "C++ library to interface with MAVLink systems"
     settings = "os", "compiler", "build_type", "arch"
-    generators = "cmake", "cmake_find_package"
+    package_type = "library"
     requires = [
-        "jsoncpp/[>=1.9.5]",
-        "tinyxml2/[>=9.0.0]",
-        "libcurl/[>=7.86.0]",
-        "openssl/1.1.1n"
+        "jsoncpp/[>=1.9.5 <2]",
+        "tinyxml2/[>=9.0.0 <10]",
+        "libcurl/[>=7.86.0 <8]"
         ]
-    
+
     options = {
+        "fPIC": [True, False],
         "shared": [True, False]
         }
     default_options = {
+        "fPIC": True,
         "shared": False
         }
 
-    source_folder = "mavsdk-{}".format(version)
+    @property
+    def _build_testing(self):
+        return not self.conf.get("tools.build:skip_test",
+                             default=True, check_type=bool)
 
-    scm = {
-        "type": "git",
-        "subfolder": source_folder,
-        "url": "https://github.com/mavlink/MAVSDK.git",
-        "revision": "v{}".format(version),
-        "submodule": "recursive"
-        }
+    def export_sources(self):
+        pass
+        #export_conandata_patches(self)
 
-    def configure_cmake(self):
-        cmake = CMake(self)
+    def config_options(self):
+        if self.settings.os == "Windows":
+            del self.options.fPIC
 
-        cmake.definitions["SUPERBUILD"] = "OFF"
-        cmake.definitions["BUILD_MAVSDK_SERVER"] = "OFF"
-        cmake.definitions["BUILD_SHARED_LIBS"] = \
-            "ON" if self.options.shared else "OFF"
-       
-        cmake.configure()
-        return cmake
+    def layout(self):
+        cmake_layout(self, src_folder="src")
+
+    def configure(self):
+        if self.options.shared:
+            self.options.rm_safe("fPIC")
+
+    def build_requirements(self):
+        if self._build_testing:
+            self.test_requires("gtest/1.10.0")
 
     def source(self):
-        tools.replace_in_file("{}/src/CMakeLists.txt".format(self.source_folder),
-                            "project(mavsdk)",
-                            '''project(mavsdk)
-# BEGIN CONAN PATCH
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup()
-link_libraries(${CONAN_LIBS})
-# END CONAN PATCH''')
+        get(self, **self.conan_data["sources"][self.version]["sdk"], strip_root=True)
+        sources = self.conan_data["sources"][self.version]["mavlink"]
+        mavlink_dir = join(self.source_folder, "src", "third_party",
+                           "mavlink", "include", "mavlink", "v2.0")
+        git = Git(self, folder=mavlink_dir)
+        git.fetch_commit(sources["url"], sources["commit"])
 
-        tools.replace_in_file("{}/src/core/connection.h".format(self.source_folder),
-                             "#include <unordered_set>",
-                            '''#include <unordered_set>
-// BEGIN CONAN PATCH
-#include <atomic>
-// END CONAN PATCH''')
-        if self.settings.os == "Windows":
-            tools.replace_in_file("{}/src/cmake/unit_tests.cmake".format(self.source_folder),
-                                "JsonCpp::jsoncpp",
-                                '''# BEGIN CONAN PATCH
-jsoncpp::jsoncpp
-# END CONAN PATCH''')
+        # TODO: create instead patch files to simplify building versions
+        replace_in_file(self, join(self.source_folder, "CMakeLists.txt"),
+                        'message(STATUS "Version: ${VERSION_STR}")',
+                        f'set(VERSION_STR v{self.version})\nmessage(STATUS "Version: ${{VERSION_STR}}")')
 
-            tools.replace_in_file("{}/src/plugins/mission_raw/CMakeLists.txt".format(self.source_folder),
-                                "JsonCpp::jsoncpp",
-                                '''# BEGIN CONAN PATCH
-jsoncpp::jsoncpp
-# END CONAN PATCH''')
+        replace_in_file(self, join(self.source_folder, "src", "CMakeLists.txt"),
+                        'add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/gtest EXCLUDE_FROM_ALL)',
+                        '')
 
-            tools.replace_in_file("{}/src/plugins/mission/CMakeLists.txt".format(self.source_folder),
-                                "JsonCpp::jsoncpp",
-                                '''# BEGIN CONAN PATCH
-jsoncpp::jsoncpp
-# END CONAN PATCH''')
+        # Link gtest from conan
+        tests = [(join(self.source_folder, "src", "integration_tests", "CMakeLists.txt"), "integration_tests"),
+                 (join(self.source_folder, "src", "cmake", "unit_tests.cmake"), "unit_tests")]
+
+        gtests = [("    gtest_main", "    GTest::Main"),
+                  ("    gtest", "    GTest::gtest"),
+                  ("    gmock", "    GTest::gmock")]
+
+        for a_test in tests:
+            replace_in_file(self, a_test[0],
+                            f"target_link_libraries({a_test[1]}_runner",
+                            f"find_package(GTest REQUIRED)\ntarget_link_libraries({a_test[1]}_runner")
+
+            for gt in gtests:
+                replace_in_file(self, a_test[0],
+                                gt[0], gt[1])
+
+        replace_in_file(self, join(self.source_folder, "src/core/connection.h"),
+                        "#include <unordered_set>",
+                        "#include <unordered_set>\n#include <atomic>")
+
+        link_jsonpp = ["src/cmake/unit_tests.cmake",
+                       "src/plugins/mission_raw/CMakeLists.txt",
+                       "src/plugins/mission/CMakeLists.txt"]
+
+        for f in link_jsonpp:
+            replace_in_file(self, join(self.source_folder, f),
+                            "JsonCpp::jsoncpp", "JsonCpp::JsonCpp")
+
+    def generate(self):
+        tc = CMakeToolchain(self)
+        tc.variables["SUPERBUILD"] = False
+        tc.variables["BUILD_MAVSDK_SERVER"] = False
+        tc.variables["BUILD_TESTS"] = self._build_testing
+        tc.generate()
+
+        deps = CMakeDeps(self)
+        deps.generate()
+
 
     def build(self):
-        cmake = self.configure_cmake()
+        #apply_conandata_patches(self)
+        cmake = CMake(self)
+        cmake.configure()
         cmake.build()
 
     def package(self):
-        cmake = self.configure_cmake()
+        cmake = CMake(self)
         cmake.install()
-        if self.options.shared:
-            self.copy("mavsdk*", dst = "bin", src = self.build_folder + "/src/bin/", keep_path = False, symlinks = True)
+
+        copy(self, "LICENSE", self.source_folder,
+             join(self.package_folder, "licenses"))
+        rmdir(self, join(self.package_folder, "lib", "cmake"))
+        #if self.options.shared:
+        #    copy(self, "mavsdk*", dst="bin", src=self.build_folder + "/src/bin/", keep_path=False, symlinks=True)
 
     def package_info(self):
-        self.cpp_info.name = 'MAVSDK'
+        self.cpp_info.set_property("cmake_find_mode", "both")
+        self.cpp_info.set_property("cmake_file_name", "MAVSDK")
+        self.cpp_info.set_property("cmake_target_name", "MAVSDK::MAVSDK")
+
         self.cpp_info.libs = [
                 "mavsdk",
                 "mavsdk_action",
-                "mavsdk_calibration", 
+                "mavsdk_calibration",
                 "mavsdk_camera",
                 "mavsdk_failure",
                 "mavsdk_follow_me",
