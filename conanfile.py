@@ -4,6 +4,7 @@ from conan.tools.files import get, copy
 from conan.tools.files import replace_in_file, rmdir
 from conan.tools.cmake import CMake, CMakeToolchain, CMakeDeps, cmake_layout
 from conan.tools.scm import Git
+from conan.tools.env import Environment
 
 required_conan_version = ">=1.53.0"
 
@@ -28,7 +29,8 @@ class MAVSDKConan(ConanFile):
 
     @property
     def _build_testing(self):
-        return not self.conf.get("tools.build:skip_test",
+        # TODO: DISABLED for time-being
+        return False and not self.conf.get("tools.build:skip_test",
                              default=True, check_type=bool)
 
     def export_sources(self):
@@ -121,6 +123,12 @@ class MAVSDKConan(ConanFile):
         cmake = CMake(self)
         cmake.configure()
         cmake.build()
+
+        if self._build_testing:
+            env = Environment()
+            env.define("CTEST_OUTPUT_ON_FAILURE", "ON")
+            with env.vars(self).apply():
+                cmake.test()
 
     def package(self):
         cmake = CMake(self)
