@@ -27,6 +27,7 @@ jobs:
         compiler_version: [191, 192, 193]
         version: [0.39.0]
         build_type: [Debug, Release]
+        shared: ["True", "False"]
         channel: ["${{ (github.head_ref || github.ref_name) == 'main' && 'stable' || 'testing' }}"]
     steps:
       - uses: actions/checkout@v3
@@ -56,6 +57,7 @@ jobs:
             -s compiler.version=${{ matrix.compiler_version }} `
             -pr:b=${{ matrix.profile }} -pr:h=${{ matrix.profile }} `
             -b missing -b outdated -b ${{ env.package_name }}* `
+            -o ${{ env.package_name }}*:shared=${{ matrix.shared }} `
             . ${{ env.PKG_REFERENCE }}
       - name: Conan upload
         run: conan upload --confirm -r sintef ${{ env.package_name }}* --force ${{ env.UPLOAD_FLAGS }}
