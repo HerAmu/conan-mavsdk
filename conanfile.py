@@ -1,9 +1,8 @@
 from os.path import join
 from conan import ConanFile
 from conan.tools.files import get, copy
-from conan.tools.files import apply_conandata_patches, export_conandata_patches, replace_in_file, rmdir
+from conan.tools.files import replace_in_file, rmdir
 from conan.tools.cmake import CMake, CMakeToolchain, CMakeDeps, cmake_layout
-from conan.tools.microsoft.visual import is_msvc
 from conan.tools.scm import Git
 
 required_conan_version = ">=1.53.0"
@@ -18,12 +17,6 @@ class MAVSDKConan(ConanFile):
     description = "C++ library to interface with MAVLink systems"
     settings = "os", "compiler", "build_type", "arch"
     package_type = "library"
-    requires = [
-        "jsoncpp/[>=1.9.5 <2]",
-        "tinyxml2/[>=9.0.0 <10]",
-        "libcurl/[>=7.86.0 <8]"
-        ]
-
     options = {
         "fPIC": [True, False],
         "shared": [True, False]
@@ -49,6 +42,11 @@ class MAVSDKConan(ConanFile):
     def layout(self):
         cmake_layout(self, src_folder="src")
 
+    def requirements(self):
+        self.requires("jsoncpp/[>=1.9.5 <2]")
+        self.requires("tinyxml2/[>=9.0.0 <10]")
+        self.requires("libcurl/[>=7.86.0 <8]")
+
     def configure(self):
         if self.options.shared:
             self.options.rm_safe("fPIC")
@@ -64,6 +62,10 @@ class MAVSDKConan(ConanFile):
                            "mavlink", "include", "mavlink", "v2.0")
         git = Git(self, folder=mavlink_dir)
         git.fetch_commit(sources["url"], sources["commit"])
+
+        # tinyxml.h is used in camera_definition_test, so unit_tests must link to tinyxml2::tinyxml2
+        replace_in_file(self, join(self.source_folder, "src", "cmake", "unit_tests.cmake"),
+                        "gtest_main", "gtest_main\n    tinyxml2::tinyxml2")
 
         # TODO: create instead patch files to simplify building versions
         replace_in_file(self, join(self.source_folder, "CMakeLists.txt"),
