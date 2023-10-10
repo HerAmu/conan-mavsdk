@@ -137,13 +137,18 @@ class MAVSDKConan(ConanFile):
         copy(self, "LICENSE", self.source_folder,
              join(self.package_folder, "licenses"))
         rmdir(self, join(self.package_folder, "lib", "cmake"))
-        #if self.options.shared:
-        #    copy(self, "mavsdk*", dst="bin", src=self.build_folder + "/src/bin/", keep_path=False, symlinks=True)
+        if self.options.shared:
+            copy(self, "*mavsdk*.dll", dst=join(self.package_folder, "bin"), src=join(self.build_folder, "src"), keep_path=False)
 
     def package_info(self):
         self.cpp_info.set_property("cmake_find_mode", "both")
         self.cpp_info.set_property("cmake_file_name", "MAVSDK")
         self.cpp_info.set_property("cmake_target_name", "MAVSDK::MAVSDK")
+
+        if self.settings.os == "Linux":
+            self.cpp_info.system_libs = ["m", "dl", "pthread"]
+        if self.settings.os == "Windows":
+            self.cpp_info.system_libs = ["ws2_32"]
 
         self.cpp_info.libs = [
                 "mavsdk",
