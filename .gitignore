@@ -2,3 +2,4 @@
 build*/
 test_package/out
 mavsdk*/
+CMakeUserPresets.json

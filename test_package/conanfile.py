@@ -1,32 +1,26 @@
-import os
+from os import path
+from conan import ConanFile
+from conan.tools.build import can_run
+from conan.tools.cmake import cmake_layout, CMake
 
-from conans import ConanFile, CMake, tools
 
-
-class FhSimTestConan(ConanFile):
+class MavsdkTestConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
-    generators = "cmake_paths", "cmake_find_package"
+    generators = "CMakeDeps", "CMakeToolchain", "VirtualRunEnv"
+    test_type = "explicit"
+
+    def requirements(self):
+        self.requires(self.tested_reference_str)
+
+    def layout(self):
+        cmake_layout(self)
 
     def build(self):
-        cmake = self._configure_cmake()
+        cmake = CMake(self)
         cmake.configure()
         cmake.build()
 
-    def imports(self):
-        self.copy("*.dll", src="bin")
-        self.copy("*.dylib*", src="lib")
-        self.copy('*.so*', src='lib')
-
-    _cmake = None
-
-    def _configure_cmake(self):
-        if self._cmake == None:
-            self._cmake = CMake(self)
-            self._cmake.configure()
-        return self._cmake
-
     def test(self):
-        if self.settings.compiler == "Visual Studio":
-            self.run(os.path.join(self.build_folder, str(self.settings.build_type), "test.exe"))
-        else:
-            self.run(os.path.join(self.build_folder, "test"))
+        if can_run(self):
+            bin_path = path.join(self.cpp.build.bindirs[0], "test_pkg")
+            self.run(bin_path, env="conanrun")
